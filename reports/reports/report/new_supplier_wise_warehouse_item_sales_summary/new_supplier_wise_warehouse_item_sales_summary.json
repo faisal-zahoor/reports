@@ -1,0 +1,44 @@
+{
+ "add_total_row": 1, 
+ "creation": "2020-08-22 06:13:45.912833", 
+ "disable_prepared_report": 0, 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "letter_head": "SB LETTER HEAD 1", 
+ "modified": "2022-01-31 06:56:30.537855", 
+ "modified_by": "Administrator", 
+ "module": "Reports", 
+ "name": "New Supplier Wise Warehouse Item Sales Summary", 
+ "owner": "Administrator", 
+ "prepared_report": 1, 
+ "query": "select\nsup.supplier as \"Supplier:Data:200\",\nite.item_code as \"Item Code:Data:150\",\nite.item_name as \"Item Name:320\",\nfull_cogs.warehouse as \"Warehouse:Data:150\",\nIF(ite.sync_flag = \"1\",\"Enabled\", \"Disabled\") as \"Item Status:Data:200\",\nfull_sales.sales as \"Net Sales:Currency:100\",\nfull_cogs.cogs as \"COGS:Currency:100\",\nfull_sales.sales - ifnull(full_cogs.cogs,0) as \"Profit:Currency:100\",\n(full_sales.sales - ifnull(full_cogs.cogs,0)) / ifnull(full_sales.sales,1) * 100 as \"Profit Percent:Percent:100\",\nfull_sales.actual_qty as \"Sold Qty:Int:100\",\nbin.actual_qty as \"Bal Qty:Int:100\",\n(full_sales.sales / full_sales.actual_qty) as \"AVG SP:Float:100\",\n(full_cogs.cogs / ifnull(full_sales.actual_qty,1)) as \"AVG Cost:Float:100\",\nite.cl_1 as \"CL 1:Data:100\",\nite.cl_2 as \"CL 2:Data:100\"\n\n\n\n\n\nfrom (\nselect sum(cogs) as cogs, sum(actual_qty) as actual_qty, item_code, warehouse from (\nselect -sum(stock_value_difference) as cogs, sum(-actual_qty) as actual_qty, sle.item_code, sle.warehouse\nfrom `tabStock Ledger Entry` as sle inner join ( select distinct si.name\nfrom `tabGL Entry` as gl inner join `tabSales Invoice` as si on si.name = gl.voucher_no and gl.voucher_type = 'Sales Invoice' and\nsi.update_stock = 1 where account = 'SALES ACCOUNT - SB' and gl.posting_date >= %(from_date)s and gl.posting_date <= %(to_date)s group by si.name\n) as a on a.name = sle.voucher_no and is_cancelled = 'No' group by sle.item_code, sle.warehouse\nunion all\nselect -sum(stock_value_difference) as cogs, sum(-actual_qty) as actual_qty, sle.item_code, sle.warehouse\nfrom `tabStock Ledger Entry` as sle\ninner join (select distinct dn.name\nfrom `tabGL Entry` as gl\ninner join `tabSales Invoice` as si on si.name = gl.voucher_no and gl.voucher_type = 'Sales Invoice' and si.update_stock = 0\ninner join `tabSales Invoice Item` as sii on sii.parent = si.name and sii.income_account = 'SALES ACCOUNT - SB'\ninner join `tabDelivery Note` as dn on sii.delivery_note = dn.name\nwhere account = 'SALES ACCOUNT - SB' and gl.posting_date >= %(from_date)s and gl.posting_date <= %(to_date)s\ngroup by dn.name) as a on a.name = sle.voucher_no and is_cancelled = 'No'\ngroup by sle.item_code, sle.warehouse) as part_cogs group by item_code, warehouse) as full_cogs\nleft outer join\n(select sum(sii.base_net_amount) as sales, sum(sii.stock_qty) as actual_qty, sii.item_code, sii.warehouse\nfrom `tabGL Entry` as gl\ninner join `tabSales Invoice` as si on si.name = gl.voucher_no and gl.voucher_type = 'Sales Invoice'\ninner join `tabSales Invoice Item` as sii on sii.parent = si.name and si.docstatus = 1 and sii.income_account = 'SALES ACCOUNT - SB'\nwhere account = 'SALES ACCOUNT - SB'\nand gl.posting_date >= %(from_date)s and gl.posting_date <= %(to_date)s\ngroup by sii.item_code, sii.warehouse) as full_sales on full_sales.item_code = full_cogs.item_code\nand full_cogs.warehouse = full_sales.warehouse\nleft outer join `tabBin` as bin on full_cogs.item_code = bin.item_code and bin.warehouse = full_cogs.warehouse\nleft outer join `tabItem` as ite on ite.item_code = full_cogs.item_code and ite.disabled = 0\nleft outer join `tabItem Supplier` as sup on sup.parent = ite.item_code\ngroup by full_cogs.item_code, full_cogs.warehouse,sup.supplier;", 
+ "ref_doctype": "Sales Invoice", 
+ "report_name": "New Supplier Wise Warehouse Item Sales Summary", 
+ "report_type": "Query Report", 
+ "roles": [
+  {
+   "role": "Accounts User"
+  }, 
+  {
+   "role": "Accounts Manager"
+  }, 
+  {
+   "role": "STORE"
+  }, 
+  {
+   "role": "POS - COUNTER"
+  }, 
+  {
+   "role": "POS"
+  }, 
+  {
+   "role": "FINANCE - MGMT."
+  }, 
+  {
+   "role": "BASIC PERMISSIONS FOR ENTRIES & REPORTS"
+  }
+ ]
+}

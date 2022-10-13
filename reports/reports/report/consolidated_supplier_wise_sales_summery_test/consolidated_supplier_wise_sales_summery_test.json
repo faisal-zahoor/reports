@@ -1,0 +1,38 @@
+{
+ "add_total_row": 1, 
+ "creation": "2019-12-09 10:04:59.681844", 
+ "disable_prepared_report": 0, 
+ "disabled": 1, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "letter_head": "SB LETTER HEAD 1", 
+ "modified": "2019-12-22 10:25:06.478684", 
+ "modified_by": "Administrator", 
+ "module": "Reports", 
+ "name": "Consolidated Supplier wise Sales Summery Test", 
+ "owner": "Administrator", 
+ "prepared_report": 0, 
+ "query": "SELECT si_item.supplier AS \"Supplier:Link/Supplier:120\",\n       sum(si_item.amount) AS \"Net Sales:Currency:120\",\n\n  (SELECT IFNULL((sum(stock_value/qty_after_transaction * (actual_qty*-1))),0)\n   FROM `tabStock Ledger Entry`\n   WHERE\n      (warehouse = 'Store - Shuwaikh - SB'\n          OR warehouse = 'Ahmadi S/R - SB'\n          OR warehouse = 'Decor - Shuwaikh - SB'\n          OR warehouse = 'Main SB - SB'\n          OR warehouse = 'Shuwaikh S/R - SB')\n     AND is_cancelled='No' \n     AND voucher_type IN ('Sales Invoice',\n                          'Delivery Note') AND item_supplier=si_item.supplier AND stock_value>0 AND actual_qty<0 AND posting_date>=%(from_date)s AND posting_date<=%(to_date)s) AS 'COGS:Currency:120',\n\n\t(sum(si_item.amount) - (SELECT IFNULL((sum(stock_value/qty_after_transaction * (actual_qty*-1))),0)\n   FROM `tabStock Ledger Entry`\n   WHERE\n      (warehouse = 'Store - Shuwaikh - SB'\n          OR warehouse = 'Ahmadi S/R - SB'\n          OR warehouse = 'Decor - Shuwaikh - SB'\n          OR warehouse = 'Main SB - SB'\n          OR warehouse = 'Shuwaikh S/R - SB')\n     AND is_cancelled='No' \n     AND voucher_type IN ('Sales Invoice',\n                          'Delivery Note') AND item_supplier=si_item.supplier AND stock_value>0 AND actual_qty<0 AND posting_date>=%(from_date)s AND posting_date<=%(to_date)s)) AS 'Profit:Currency:120',\n\n\t((sum(si_item.amount) - (SELECT IFNULL((sum(stock_value/qty_after_transaction * (actual_qty*-1))),0)\n   FROM `tabStock Ledger Entry`\n   WHERE\n      (warehouse = 'Store - Shuwaikh - SB'\n          OR warehouse = 'Ahmadi S/R - SB'\n          OR warehouse = 'Decor - Shuwaikh - SB'\n          OR warehouse = 'Main SB - SB'\n          OR warehouse = 'Shuwaikh S/R - SB')\n     AND is_cancelled='No' \n     AND voucher_type IN ('Sales Invoice',\n                          'Delivery Note') AND item_supplier=si_item.supplier AND stock_value>0 AND actual_qty<0 AND posting_date>=%(from_date)s AND posting_date<=%(to_date)s))  / sum(si_item.amount) * 100) AS 'Profit Per:Percent:120',\n\tsum(si_item.stock_qty) AS \"Sold Qty:Float:100\",\n\t(SELECT sum(actual_qty)\n   FROM `tabBin`\n   WHERE item_code = si_item.item_code\n     AND (warehouse = 'Ahmadi S/R - SB'\n          OR warehouse = 'Decor - Shuwaikh - SB'\n          OR warehouse = 'Main SB - SB'\n          OR warehouse = 'Shuwaikh S/R - SB'\n          OR warehouse = 'Store - Shuwaikh - SB')) AS 'Bal Qty:Int:100',\n       sum(si_item.amount) / sum(si_item.stock_qty) AS \"AVG SP:Float:100\",\n\n\t(((SELECT IFNULL((sum(stock_value/qty_after_transaction * (actual_qty*-1))),0)\n   FROM `tabStock Ledger Entry`\n   WHERE\n      (warehouse = 'Store - Shuwaikh - SB'\n          OR warehouse = 'Ahmadi S/R - SB'\n          OR warehouse = 'Decor - Shuwaikh - SB'\n          OR warehouse = 'Main SB - SB'\n          OR warehouse = 'Shuwaikh S/R - SB')\n     AND is_cancelled='No' \n     AND voucher_type IN ('Sales Invoice',\n                          'Delivery Note') AND item_supplier=si_item.supplier AND stock_value>0 AND actual_qty<0 AND posting_date>=%(from_date)s AND posting_date<=%(to_date)s)) / sum(si_item.stock_qty)) AS 'AVG Cost:Currency:120',\n\t(SELECT cl_1\n   FROM `tabItem`\n   WHERE item_code = si_item.item_code) AS 'CL 1:Data:100',\n\n  (SELECT cl_2\n   FROM `tabItem`\n   WHERE item_code = si_item.item_code) AS 'CL 2:Data:100'\n\nFROM `tabSales Invoice` si,\n     `tabSales Invoice Item` si_item\nWHERE (si.name = si_item.parent)\n  AND (si.docstatus = 1)\n  AND (si.posting_date) >=%(from_date)s\n  AND (si.posting_date) <=%(to_date)s\nGROUP BY si_item.supplier;\n", 
+ "ref_doctype": "Sales Invoice", 
+ "report_name": "Consolidated Supplier wise Sales Summery Test", 
+ "report_type": "Query Report", 
+ "roles": [
+  {
+   "role": "Sales User"
+  }, 
+  {
+   "role": "Sales Manager"
+  }, 
+  {
+   "role": "Maintenance User"
+  }, 
+  {
+   "role": "Accounts User"
+  }, 
+  {
+   "role": "Stock User"
+  }
+ ]
+}

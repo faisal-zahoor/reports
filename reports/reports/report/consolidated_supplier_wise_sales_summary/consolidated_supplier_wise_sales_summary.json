@@ -1,0 +1,38 @@
+{
+ "add_total_row": 1, 
+ "creation": "2019-12-22 10:23:53.128784", 
+ "disable_prepared_report": 0, 
+ "disabled": 1, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "letter_head": "SB LETTER HEAD 1", 
+ "modified": "2020-07-15 13:13:15.351653", 
+ "modified_by": "Administrator", 
+ "module": "Reports", 
+ "name": "Consolidated Supplier wise Sales Summary", 
+ "owner": "Administrator", 
+ "prepared_report": 0, 
+ "query": "SELECT si_item.supplier AS \"Supplier:Link/Supplier:120\",\n       sum(si_item.base_net_amount) AS \"Net Sales:Currency:120\",\n\tsum(qty*val_rate) AS \"COGS:Currency:120\",\n\t(sum(si_item.base_net_amount) - sum(qty*val_rate)) AS 'Profit:Currency:120',\n\n\t((sum(si_item.base_net_amount) - sum(qty*val_rate))  / sum(si_item.base_net_amount) * 100) AS 'Profit Per:Percent:120',\n\t(SELECT cl_1\n   FROM `tabItem`\n   WHERE item_code = si_item.item_code) AS 'CL 1:Data:100',\n\n  (SELECT cl_2\n   FROM `tabItem`\n   WHERE item_code = si_item.item_code) AS 'CL 2:Data:100'\n\nFROM `tabSales Invoice` si,\n     `tabSales Invoice Item` si_item\nWHERE (si.name = si_item.parent)\n  AND (si.docstatus = 1)\n  AND (si.is_return = 0)\n  AND (si.posting_date) >=%(from_date)s\n  AND (si.posting_date) <=%(to_date)s\nGROUP BY si_item.supplier;\n", 
+ "ref_doctype": "Sales Invoice", 
+ "report_name": "Consolidated Supplier wise Sales Summary", 
+ "report_type": "Query Report", 
+ "roles": [
+  {
+   "role": "Sales User"
+  }, 
+  {
+   "role": "Sales Manager"
+  }, 
+  {
+   "role": "Maintenance User"
+  }, 
+  {
+   "role": "Accounts User"
+  }, 
+  {
+   "role": "Stock User"
+  }
+ ]
+}

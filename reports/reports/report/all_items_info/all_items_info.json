@@ -1,0 +1,62 @@
+{
+ "add_total_row": 0, 
+ "creation": "2019-11-05 15:08:11.364343", 
+ "disable_prepared_report": 0, 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "letter_head": "SB LETTER HEAD 1", 
+ "modified": "2019-11-07 15:54:42.594020", 
+ "modified_by": "Administrator", 
+ "module": "Reports", 
+ "name": "All Items Info", 
+ "owner": "Administrator", 
+ "prepared_report": 0, 
+ "query": "select \n\titem_code as 'Item Code:Link/Item:100',\n\titem_name as 'Item Name:Data:200',\n\tmanufacturer_part_no as 'Manufacturer Part Number:Data:150',\n\tbrand as 'Brand:Link/Brand:100',\n\titem_group as 'Item Group:Link/Item Group:100',\n\tsub_category_1 as 'Sub Category 1:Data:120',\n\tsub_category_2 as 'Sub Category 2:Data:120',\n\t\t(select sum(actual_qty) from `tabBin` where item_code = `tabItem`.item_code and (warehouse = 'Ahmadi S/R - SB' or warehouse = 'Decor - Shuwaikh - SB' or warehouse = 'Main SB - SB' or warehouse = 'Shuwaikh S/R - SB' or warehouse = 'Store - Shuwaikh - SB'))  as 'Total Stock:Float:100',\n\tstandard_rate as 'Rate:Currency:120',\n\tmarket_price as 'Market Price:Currency:120',\n\tprice_a_60_days as 'Price A 60 Days:Currency:130',\n\tprice_a_90_days as 'Price A 90 Days:Currency:130',\n\tcash_price as 'Cash Price:Currency:80',\n\tsell_off_price as 'Sell Off Price:Currency:80'\n\tfrom `tabItem`;", 
+ "ref_doctype": "Item", 
+ "report_name": "All Items Info", 
+ "report_type": "Query Report", 
+ "roles": [
+  {
+   "role": "Item Manager"
+  }, 
+  {
+   "role": "Stock User"
+  }, 
+  {
+   "role": "Maintenance User"
+  }, 
+  {
+   "role": "Manufacturing User"
+  }, 
+  {
+   "role": "Accounts User"
+  }, 
+  {
+   "role": "Purchase User"
+  }, 
+  {
+   "role": "Stock Manager"
+  }, 
+  {
+   "role": "Sales User"
+  }, 
+  {
+   "role": "STORE"
+  }, 
+  {
+   "role": "POS - COUNTER"
+  }, 
+  {
+   "role": "BASIC PERMISSIONS FOR ENTRIES & REPORTS"
+  }, 
+  {
+   "role": "OFFICE (FOR COST VIEW & ITEM CREATE)"
+  }, 
+  {
+   "role": "POS"
+  }
+ ]
+}

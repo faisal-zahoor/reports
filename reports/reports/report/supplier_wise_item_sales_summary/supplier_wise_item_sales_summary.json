@@ -1,0 +1,44 @@
+{
+ "add_total_row": 1, 
+ "creation": "2020-03-16 08:57:39.845221", 
+ "disable_prepared_report": 0, 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "letter_head": "SB LETTER HEAD 1", 
+ "modified": "2021-09-28 09:23:54.359115", 
+ "modified_by": "Administrator", 
+ "module": "Reports", 
+ "name": "Supplier Wise Item Sales Summary", 
+ "owner": "Administrator", 
+ "prepared_report": 1, 
+ "query": "SELECT sup.supplier as \"Supplier:Data:200\",\n   si_item.item_code as \"Item Code:Data:200\",\n   si_item.item_name as \"Item Name:320\",\n   IF(itm.disabled = 0,\"Enabled\", disabled) as \"Item Status:Data:200\",\n   sum(si_item.base_net_amount)  as \"Net Sales:Currency:200\",\n  sum(iv.valuation_rate*si_item.stock_qty) as \"COGS:Currency:200\",\n   sum(si_item.base_net_amount) - sum(ifnull(iv.valuation_rate*si_item.stock_qty,0)) as \"Profit:Currency:200\",\n\n(sum(si_item.base_net_amount - ifnull(iv.valuation_rate*si_item.stock_qty,0)) / sum(si_item.base_net_amount) * 100 )as \"Profit Percent:Percent:200\", \n\n\nsum(si_item.stock_qty)   as \"Sold Qty:Int:200\",\n   (\n          SELECT sum(actual_qty)\n          FROM   `tabBin`\n          WHERE  item_code = si_item.item_code\n          ) as \"Bal Qty:Int:200\",\n   (\n          SELECT sum(actual_qty)\n          FROM   `tabBin`\n          WHERE  item_code = si_item.item_code\n          )/sum(si_item.stock_qty) as \"Lead Factor:Float:200\",\n   (sum(si_item.base_net_amount) / sum(si_item.stock_qty)) as \"AVG SP:Float:200\",\n   (avg(iv.valuation_rate)) as \"AVG Cost:Float:200\",\n   (\n          SELECT cl_1\n          FROM   `tabItem`\n          WHERE  item_code = si_item.item_code) as \"CL 1:Data:200\",\n   (\n          SELECT cl_2\n          FROM   `tabItem`\n          WHERE  item_code = si_item.item_code) as \"CL 2:Data:200\"\nFROM   `tabSales Invoice` si\nJOIN `tabSales Invoice Item` as si_item on si_item.parent = si.name\nleft outer join `tabItem` itm on itm.item_code = si_item.item_code\nleft outer JOIN `tabItem Supplier` sup ON sup.parent = si_item.item_code\nleft outer join item_val_rate as iv on (iv.item_code = si_item.item_code and (iv.posting_date = si.posting_date or iv.posting_date = ''))\nwhere si.docstatus = 1  \nAND (si.posting_date) >=%(from_date)s\nAND (si.posting_date) <=%(to_date)s\n          \nGROUP  BY sup.supplier, si_item.item_code\n\n", 
+ "ref_doctype": "Sales Invoice", 
+ "report_name": "Supplier Wise Item Sales Summary", 
+ "report_type": "Query Report", 
+ "roles": [
+  {
+   "role": "Accounts User"
+  }, 
+  {
+   "role": "Accounts Manager"
+  }, 
+  {
+   "role": "STORE"
+  }, 
+  {
+   "role": "POS - COUNTER"
+  }, 
+  {
+   "role": "POS"
+  }, 
+  {
+   "role": "FINANCE - MGMT."
+  }, 
+  {
+   "role": "BASIC PERMISSIONS FOR ENTRIES & REPORTS"
+  }
+ ]
+}

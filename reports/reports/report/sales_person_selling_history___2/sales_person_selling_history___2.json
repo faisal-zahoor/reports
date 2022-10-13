@@ -1,0 +1,44 @@
+{
+ "add_total_row": 1, 
+ "creation": "2021-12-29 17:29:09.863581", 
+ "disable_prepared_report": 0, 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "letter_head": "SB LETTER HEAD 1", 
+ "modified": "2022-02-14 18:18:36.545876", 
+ "modified_by": "Administrator", 
+ "module": "Reports", 
+ "name": "Sales Person Selling History - 2", 
+ "owner": "Administrator", 
+ "prepared_report": 0, 
+ "query": "select full_cogs.sales_person as 'Sales Person:Link/Sales Person:180',\nfull_sales.sales as 'Grand Total:Currency:120',\nfull_cogs.cogs as 'COGS:Currency:120',\nfull_sales.sales - full_cogs.cogs as 'Profit:Currency:120',\n((full_sales.sales - full_cogs.cogs) / full_sales.sales) * 100 as 'Margin:Percent:120'\nfrom (\nselect sum(cogs) as cogs, sales_person\nfrom (\nselect -sum(stock_value_difference) as cogs, a.sales_person\nfrom `tabStock Ledger Entry` as sle\ninner join (\n(select distinct si.name, case when st.sales_person is null then 'No Sales Person' else st.sales_person end as sales_person\nfrom `tabGL Entry` as gl\ninner join `tabSales Invoice` as si\non si.name = gl.voucher_no and gl.voucher_type = 'Sales Invoice' and\nsi.update_stock = 1\nleft outer join `tabSales Team` as st on st.parent = si.name\nwhere account = 'SALES ACCOUNT - SB'\nand gl.posting_date >= %(from_date)s\nand gl.posting_date <= %(to_date)s\ngroup by si.name\n)) as a on a.name = sle.voucher_no and is_cancelled = 'No'\ngroup by a.sales_person\nunion\nselect -sum(stock_value_difference) as cogs, a.sales_person\nfrom `tabStock Ledger Entry` as sle\ninner join (\n(select distinct dn.name, case when st.sales_person is null then 'No Sales Person' else st.sales_person end as sales_person\nfrom `tabGL Entry` as gl\ninner join `tabSales Invoice` as si\non si.name = gl.voucher_no and gl.voucher_type = 'Sales Invoice' and\nsi.update_stock = 0\ninner join `tabSales Invoice Item` as sii on sii.parent = si.name\ninner join `tabDelivery Note` as dn on sii.delivery_note = dn.name\nleft outer join `tabSales Team` as st on st.parent = dn.name\nwhere account = 'SALES ACCOUNT - SB'\nand gl.posting_date >= %(from_date)s\nand gl.posting_date <= %(to_date)s\ngroup by dn.name)) as a on a.name = sle.voucher_no and is_cancelled = 'No'\ngroup by a.sales_person) as b\ngroup by sales_person) as full_cogs\ninner join\n(select case when st.sales_person is null then 'No Sales Person' else st.sales_person end as sales_person, sum(credit) - sum(debit) as sales\nfrom `tabGL Entry` as gl\ninner join `tabSales Invoice` as si on si.name = gl.voucher_no and gl.voucher_type = 'Sales Invoice'\nleft outer join `tabSales Team` as st on st.parent = si.name\nwhere account = 'SALES ACCOUNT - SB'\nand gl.posting_date >= %(from_date)s\nand gl.posting_date <= %(to_date)s\ngroup by st.sales_person) as full_sales\nwhere full_sales.sales_person = full_cogs.sales_person;", 
+ "ref_doctype": "Sales Invoice", 
+ "report_name": "Sales Person Selling History - 2", 
+ "report_type": "Query Report", 
+ "roles": [
+  {
+   "role": "Accounts User"
+  }, 
+  {
+   "role": "Accounts Manager"
+  }, 
+  {
+   "role": "STORE"
+  }, 
+  {
+   "role": "POS - COUNTER"
+  }, 
+  {
+   "role": "POS"
+  }, 
+  {
+   "role": "FINANCE - MGMT."
+  }, 
+  {
+   "role": "BASIC PERMISSIONS FOR ENTRIES & REPORTS"
+  }
+ ]
+}

@@ -1,0 +1,44 @@
+{
+ "add_total_row": 1, 
+ "creation": "2022-01-31 06:55:40.791164", 
+ "disable_prepared_report": 0, 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "letter_head": "SB LETTER HEAD 1", 
+ "modified": "2022-07-28 10:50:25.238702", 
+ "modified_by": "Administrator", 
+ "module": "Reports", 
+ "name": "New Supplier Wise Warehouse Item Sales Summary - Matching", 
+ "owner": "Administrator", 
+ "prepared_report": 0, 
+ "query": "select supplier as \"Supplier:Data:200\", item_code as \"Item Code:Data:150\", item_name as \"Item Name:320\", warehouse as \"Warehouse:Data:150\", IF(sync_flag = \"1\",\"Enabled\", \"Disabled\") as \"Item Status:Data:200\", sales as \"Net Sales:Currency:100\", cogs as \"COGS:Currency:100\", sales - cogs as \"Profit:Currency:100\", ((sales - cogs) / sales) * 100 as \"Profit Percent:Percent:100\", qty as \"Sold Qty:Int:100\", actual_qty as \"Bal Qty:Int:100\", (sales / ifnull(qty,1)) as \"AVG SP:Float:100\", (cogs / ifnull(qty,1)) as \"AVG Cost:Float:100\", cl_1 as \"CL 1:Data:100\", cl_2 as \"CL 2:Data:100\" from ( select result.item_code, result.item_name, result.sales, result.pos_cogs + result.dn_cogs + closed_cogs + return_cogs as cogs, result.qty, result.actual_qty, result.sync_flag, result.warehouse, cl_1, cl_2, supplier from ( select ite.item_code as item_code, ite.item_name as item_name, sup.supplier, ite.sync_flag, sales_full.qty, bin.actual_qty, bin.warehouse, sales_full.sales, ite.cl_1, ite.cl_2, case when cogs_pos.cogs is null then 0 else cogs_pos.cogs end as pos_cogs, case when cogs_dn.cogs is null then 0 else cogs_dn.cogs end as dn_cogs, case when cogs_closed.cogs is null then 0 else cogs_closed.cogs end as closed_cogs, case when cogs_return.cogs is null then 0 else cogs_return.cogs end as return_cogs from `tabItem` as ite left outer join tabBin as bin on ite.item_code = bin.item_code left outer join `tabItem Supplier` as sup on sup.parent = ite.item_code left outer join ( select sum(sii.amount) as sales, sii.item_code, sii.warehouse, sum(stock_qty) as qty from `tabGL Entry` as gle inner join `tabSales Invoice` as si on si.name = gle.voucher_no inner join `tabSales Invoice Item` as sii on sii.parent = si.name where gle.posting_date between %(from_date)s and %(to_date)s and account = 'SALES ACCOUNT - SB' and sii.income_account = 'SALES ACCOUNT - SB' group by sii.item_code, sii.warehouse) as sales_full on sales_full.item_code = bin.item_code and bin.warehouse = sales_full.warehouse left outer join ( select sle.item_code, sle.warehouse, -sum(sle.stock_value_difference) as cogs, sum(actual_qty) as qty from `tabStock Ledger Entry` as sle where voucher_no in ( select distinct(sii.parent) from `tabGL Entry` as gle inner join `tabSales Invoice Item` as sii on sii.parent = gle.voucher_no where voucher_no in ( select distinct(si.name) as sales from `tabGL Entry` as gle inner join `tabSales Invoice` as si on si.name = gle.voucher_no and si.update_stock = 1 where gle.posting_date between %(from_date)s and %(to_date)s and account = 'SALES ACCOUNT - SB') and account = 'COST OF SALES - SB' and sii.income_account = 'SALES ACCOUNT - SB') and is_cancelled = 'No' group by sle.item_code, sle.warehouse) as cogs_pos on cogs_pos.item_code = bin.item_code and cogs_pos.warehouse = bin.warehouse left outer join ( select sle.item_code, -sum(sle.stock_value_difference) as cogs, sle.warehouse, sum(actual_qty) as qty from `tabStock Ledger Entry` as sle where voucher_no in ( select distinct(dni.parent) from `tabGL Entry` as gle inner join `tabDelivery Note Item` as dni on dni.parent = gle.voucher_no where voucher_no in ( select distinct(sii.delivery_note) as sales from `tabGL Entry` as gle inner join `tabSales Invoice` as si on si.name = gle.voucher_no and si.update_stock = 0 and si.docstatus = 1 inner join `tabSales Invoice Item` as sii on sii.parent = si.name where gle.posting_date between %(from_date)s and %(to_date)s and account = 'SALES ACCOUNT - SB') and account = 'COST OF SALES - SB') and is_cancelled = 'No' group by sle.item_code, sle.warehouse ) as cogs_dn on cogs_dn.item_code = bin.item_code and cogs_dn.warehouse = bin.warehouse left outer join ( select sle.item_code, -sum(sle.stock_value_difference) as cogs, sle.warehouse, sum(actual_qty) as qty from `tabStock Ledger Entry` as sle where voucher_no in ( select distinct(dni.parent) from `tabGL Entry` as gle inner join `tabDelivery Note Item` as dni on dni.parent = gle.voucher_no where voucher_no in ( select distinct(dn.name) from `tabDelivery Note` as dn left outer join `tabSales Invoice Item` as sii on sii.delivery_note = dn.name where sii.delivery_note is null and dn.posting_date between %(from_date)s and %(to_date)s and dn.docstatus = 1 and dn.is_return = 1 ) and account = 'COST OF SALES - SB') and is_cancelled = 'No' group by sle.item_code, sle.warehouse ) as cogs_return on cogs_return.item_code = bin.item_code and cogs_return.warehouse = bin.warehouse left outer join ( select sle.item_code, -sum(sle.stock_value_difference) as cogs, sle.warehouse, sum(actual_qty) as qty from `tabStock Ledger Entry` as sle where voucher_no in ( select distinct(dni.parent) from `tabGL Entry` as gle inner join `tabDelivery Note Item` as dni on dni.parent = gle.voucher_no where voucher_no in ( select distinct(dn.name) from `tabDelivery Note` as dn left outer join `tabSales Invoice Item` as sii on sii.delivery_note = dn.name where sii.delivery_note is null and dn.posting_date between %(from_date)s and %(to_date)s and dn.docstatus = 1 and dn.is_return = 0 and (status = 'Closed' or status = 'Completed') ) and account = 'COST OF SALES - SB') and is_cancelled = 'No' group by sle.item_code, sle.warehouse ) as cogs_closed on cogs_closed.item_code = bin.item_code and cogs_closed.warehouse = bin.warehouse ) as result) as a where cogs <> 0 and sales is not null and sales != ''", 
+ "ref_doctype": "Sales Invoice", 
+ "report_name": "New Supplier Wise Warehouse Item Sales Summary - Matching", 
+ "report_type": "Query Report", 
+ "roles": [
+  {
+   "role": "Accounts User"
+  }, 
+  {
+   "role": "Accounts Manager"
+  }, 
+  {
+   "role": "STORE"
+  }, 
+  {
+   "role": "POS - COUNTER"
+  }, 
+  {
+   "role": "POS"
+  }, 
+  {
+   "role": "FINANCE - MGMT."
+  }, 
+  {
+   "role": "BASIC PERMISSIONS FOR ENTRIES & REPORTS"
+  }
+ ]
+}

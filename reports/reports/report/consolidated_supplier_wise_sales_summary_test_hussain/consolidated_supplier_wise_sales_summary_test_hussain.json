@@ -1,0 +1,38 @@
+{
+ "add_total_row": 1, 
+ "creation": "2019-12-09 18:03:43.830555", 
+ "disable_prepared_report": 0, 
+ "disabled": 1, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "letter_head": "SB LETTER HEAD 1", 
+ "modified": "2019-12-22 10:25:14.089596", 
+ "modified_by": "Administrator", 
+ "module": "Reports", 
+ "name": "Consolidated Supplier wise Sales Summary-test Hussain", 
+ "owner": "Administrator", 
+ "prepared_report": 0, 
+ "query": "(select supplier from `tabItem Supplier` where parent = si_item.item_code) as 'Supplier:Data:200',\n\tsum(si_item.base_net_amount) as \u2018Net Sales:Currency:120\u2019,\n\t(select (sum(stock_value)/sum(qty_after_transaction) * sum(si_item.stock_qty)) from `tabStock Ledger Entry` where item_code = si_item.item_code and (warehouse = 'Store - Shuwaikh - SB' or warehouse = 'Ahmadi S/R - SB' or warehouse = 'Decor - Shuwaikh - SB' or warehouse = 'Main SB - SB' or warehouse = 'Shuwaikh S/R - SB') and is_cancelled='No') as 'COGS:Currency:120',\n\t(sum(si_item.base_net_amount) - (select (sum(stock_value)/sum(qty_after_transaction) * sum(si_item.stock_qty)) from `tabStock Ledger Entry` where item_code = si_item.item_code and (warehouse = 'Store - Shuwaikh - SB' or warehouse = 'Ahmadi S/R - SB' or warehouse = 'Decor - Shuwaikh - SB' or warehouse = 'Main SB - SB' or warehouse = 'Shuwaikh S/R - SB') and is_cancelled='No')) as 'Profit:Currency:120',\n\t(((sum(si_item.base_net_amount) - (select (sum(stock_value)/sum(qty_after_transaction) * sum(si_item.stock_qty)) from `tabStock Ledger Entry` where item_code = si_item.item_code and (warehouse = 'Store - Shuwaikh - SB' or warehouse = 'Ahmadi S/R - SB' or warehouse = 'Decor - Shuwaikh - SB' or warehouse = 'Main SB - SB' or warehouse = 'Shuwaikh S/R - SB') and is_cancelled='No')) / sum(si_item.base_net_amount)) * 100) as 'Profit Per:Percent:120',\n\tsum(si_item.stock_qty) as \"Sold Qty:Float:100\",\n\t(select sum(actual_qty) from `tabBin` where item_code = si_item.item_code and (warehouse = 'Ahmadi S/R - SB' or warehouse = 'Decor - Shuwaikh - SB' or warehouse = 'Main SB - SB' or warehouse = 'Shuwaikh S/R - SB' or warehouse = 'Store - Shuwaikh - SB'))  as 'Bal Qty:Int:100'\nfrom\n\t`tabSales Invoice` si, `tabSales Invoice Item` si_item\nwhere\n\t(si.name = si_item.parent) and (si.docstatus = 1)  group by (select supplier from `tabItem Supplier` where parent = si_item.item_code);\n", 
+ "ref_doctype": "Sales Invoice", 
+ "report_name": "Consolidated Supplier wise Sales Summary-test Hussain", 
+ "report_type": "Query Report", 
+ "roles": [
+  {
+   "role": "Sales User"
+  }, 
+  {
+   "role": "Sales Manager"
+  }, 
+  {
+   "role": "Maintenance User"
+  }, 
+  {
+   "role": "Accounts User"
+  }, 
+  {
+   "role": "Stock User"
+  }
+ ]
+}

@@ -1,0 +1,96 @@
+<style>
+.print-format {
+	padding: 4mm;
+	font-size: 8.0pt !important;
+}
+.print-format td {
+	vertical-align:middle !important;
+}
+</style>
+<h2 class="text-center" style="margin-top:0">{%= __(report.report_name) %}</h2>
+<h4 class="text-center">
+	{% if (filters.customer_name) { %}
+		{%= filters.customer_name %}
+	{% } else { %}
+		{%= filters.customer || filters.supplier %}
+	{% } %}
+</h4>
+
+<h5 class="text-center">
+	{%= __(filters.ageing_based_on) %}
+	{%= __("Until") %}
+	{%= frappe.datetime.str_to_user(filters.report_date) %}
+</h5>
+
+<table class="table table-bordered">
+	<tr>
+		<th style="width:12%">{%= __("Posting Date") %} </th>
+		<th style="width:12%">{%= __("Reference") %} </th>
+		<th style="width:10%">{%= __("Remarks") %} </th>
+		<th style="width:10%">{%= __("Customer LPO") %} </th>
+		<th style="width:12%; text-align: right;">{%= __("Invoiced Amount") %} </th>
+		<th style="width:12%; text-align: right;">{%= __("Paid Amount") %} </th>
+		<th style="width:12%; text-align: right;">{%= __("Credit Note") %} </th>
+		<th style="width:12%; text-align: right;">{%= __("Outstanding Amount") %} </th>
+		<th style="width:8%; text-align: right;">{%= __("Age (Days)") %} </th>
+	</tr>
+	{% for(var i=0, l=data.length; i<l; i++) { %}
+             <tr>
+                 <td>{%= frappe.datetime.str_to_user(data[i]["posting_date"]) %}</td>
+                 <td>{%= data[i]["voucher_no"] %}</td>
+                 <td>{%= data[i][__("Remarks")] %}</td>
+                 <td>{%= data[i]["po_no"] %}</td>
+                 <td style="text-align: right">{%= format_currency(data[i]["invoiced_amount"], data[i]["currency"]) %}</td>
+                 <td style="text-align: right">{%= format_currency(data[i]["paid_amount"], data[i]["currency"]) %}</td>
+                 <td style="text-align: right">{%= format_currency(data[i]["credit_note"], data[i]["currency"]) %}</td>
+                 <td style="text-align: right">{%= format_currency(data[i]["outstanding_amount"], data[i]["currency"]) %}</td>
+		{% if(i!=l-1) { %}
+	                 <td style="text-align: right">{%= data[i][__("Age (Days)")] %}</td>
+		{% } %}
+             </tr>
+         {% } %}
+</table>
+
+{% if(filters.show_pdc_in_print) { %}
+	{% var balance_row = data.slice(-1).pop();
+		   var range1 = report.columns[9].label;
+		   var range2 = report.columns[10].label;
+		   var range3 = report.columns[11].label;
+		   var range4 = report.columns[12].label;
+		   var range5 = report.columns[13].label;
+	%}
+	{% if(balance_row) { %}
+	<table class="table table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th>{%= __(" ") %}</th>
+				<th>{%= __(range1) %}</th>
+				<th>{%= __(range2) %}</th>
+				<th>{%= __(range3) %}</th>
+				<th>{%= __(range4) %}</th>
+				<th>{%= __(range5) %}</th>
+				<th>{%= __("Total") %}</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>{%= __("Total Outstanding") %}</td>
+				<td class="text-right">{%= format_currency(balance_row[range1]) %}</td>
+				<td class="text-right">{%= format_currency(balance_row[range2]) %}</td>
+				<td class="text-right">{%= format_currency(balance_row[range3]) %}</td>
+				<td class="text-right">{%= format_currency(balance_row[range4]) %}</td>
+				<td class="text-right">{%= format_currency(balance_row[range5]) %}</td>
+				<td class="text-right">
+					{%= format_currency(flt(balance_row[("outstanding_amount")]), data[data.length-1]["currency"]) %}
+					</td>
+			</tr>
+		</tbody>
+
+	</table>
+	{% } %}
+{% } %}
+
+
+<h5 class="text-center" style="margin-top:0">Please Check & Confirm the above invoice Amount & Balance. Please contact us if any clarification needed.</h5>
+
+<h4 class="text-center" style="margin-top:0"><u>Payments must be in favour of:<b>SB FOR WOODWORKING, CONSTRUCTION AND BLACKSMITH MATERIALS</b></u></h4>

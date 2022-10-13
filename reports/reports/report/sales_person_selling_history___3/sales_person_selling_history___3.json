@@ -1,0 +1,44 @@
+{
+ "add_total_row": 1, 
+ "creation": "2022-02-16 21:53:05.063462", 
+ "disable_prepared_report": 0, 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "letter_head": "SB LETTER HEAD 1", 
+ "modified": "2022-02-20 12:37:05.811272", 
+ "modified_by": "Administrator", 
+ "module": "Reports", 
+ "name": "Sales Person Selling History - 3", 
+ "owner": "Administrator", 
+ "prepared_report": 0, 
+ "query": "select\nsales_person as 'Sales Person:Link/Sales Person:180',\nsales as  'Sales:Currency:120',\ncogs as  'COGS:Currency:120',\nsales - cogs as 'Profit:Currency:120',\n((sales - cogs) / sales) * 100 as 'Margin:Percent:120'\nfrom (\nselect result.sales_person, result.sales, result.pos_cogs + result.dn_cogs + closed_cogs + return_cogs as cogs from (\nselect\nsp.name as sales_person,\nsales_full.sales,\ncase when cogs_pos.cogs is null then 0 else cogs_pos.cogs end as pos_cogs,\ncase when cogs_dn.cogs is null then 0 else cogs_dn.cogs end as dn_cogs,\ncase when cogs_closed.cogs is null then 0 else cogs_closed.cogs end as closed_cogs,\ncase when cogs_return.cogs is null then 0 else cogs_return.cogs end as return_cogs\nfrom `tabSales Person` as sp\nleft outer join\n(\nselect sum(credit - debit) as sales, st.sales_person from `tabGL Entry` as gle\ninner join `tabSales Invoice` as si on si.name = gle.voucher_no\ninner join `tabSales Team` as st on st.parent = si.name\nwhere gle.posting_date between %(from_date)s and %(to_date)s\nand account = 'SALES ACCOUNT - SB' group by sales_person) as sales_full on sales_full.sales_person = sp.name\nleft outer join\n(\nselect sum(debit - credit) as cogs, st.sales_person from `tabGL Entry` as gle\ninner join `tabSales Team` as st on st.parent = gle.voucher_no\nwhere voucher_no in (\nselect distinct(si.name) as sales from `tabGL Entry` as gle\ninner join `tabSales Invoice` as si on si.name = gle.voucher_no and si.update_stock = 1\nwhere gle.posting_date between %(from_date)s and %(to_date)s and account = 'SALES ACCOUNT - SB')\nand account = 'COST OF SALES - SB' group by sales_person) as cogs_pos on cogs_pos.sales_person = sp.name\nleft outer join\n(\nselect sum(debit - credit) as cogs, st.sales_person from `tabGL Entry` as gle\ninner join `tabSales Team` as st on st.parent = gle.voucher_no\nwhere voucher_no in (\nselect distinct(sii.delivery_note) as sales from `tabGL Entry` as gle\ninner join `tabSales Invoice` as si on si.name = gle.voucher_no and si.update_stock = 0\ninner join `tabSales Invoice Item` as sii on sii.parent = si.name\nwhere gle.posting_date between %(from_date)s and %(to_date)s and account = 'SALES ACCOUNT - SB')\nand account = 'COST OF SALES - SB' group by sales_person) as cogs_dn on cogs_dn.sales_person = sp.name\nleft outer join\n     (select sum(debit - credit) as cogs, st.sales_person from `tabGL Entry` as gle\ninner join `tabSales Team` as st on st.parent = gle.voucher_no\nwhere voucher_no in (\nselect distinct(dn.name) from `tabDelivery Note` as dn\nleft outer join `tabSales Invoice Item` as sii on sii.delivery_note = dn.name\nwhere sii.delivery_note is null and dn.posting_date between %(from_date)s and %(to_date)s and dn.docstatus = 1\nand dn.is_return = 1\n) and account = 'COST OF SALES - SB' group by sales_person) as cogs_return on cogs_return.sales_person = sp.name\nleft outer join\n     (select sum(debit - credit) as cogs, st.sales_person from `tabGL Entry` as gle\ninner join `tabSales Team` as st on st.parent = gle.voucher_no\nwhere voucher_no in (\nselect distinct(dn.name) from `tabDelivery Note` as dn\nleft outer join `tabSales Invoice Item` as sii on sii.delivery_note = dn.name\nwhere sii.delivery_note is null and dn.posting_date between %(from_date)s and %(to_date)s and dn.docstatus = 1\nand dn.is_return = 0 and (status = 'Closed' or status = 'Completed')\n) and account = 'COST OF SALES - SB' group by sales_person) as cogs_closed on cogs_closed.sales_person = sp.name\n) as result) as a\nwhere sales is not null;", 
+ "ref_doctype": "Sales Invoice", 
+ "report_name": "Sales Person Selling History - 3", 
+ "report_type": "Query Report", 
+ "roles": [
+  {
+   "role": "Accounts User"
+  }, 
+  {
+   "role": "Accounts Manager"
+  }, 
+  {
+   "role": "STORE"
+  }, 
+  {
+   "role": "POS - COUNTER"
+  }, 
+  {
+   "role": "POS"
+  }, 
+  {
+   "role": "FINANCE - MGMT."
+  }, 
+  {
+   "role": "BASIC PERMISSIONS FOR ENTRIES & REPORTS"
+  }
+ ]
+}
